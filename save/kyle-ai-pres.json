@@ -1,0 +1,14 @@
+{
+  "$schema": "../src/save-schema.json",
+  "numSlides": 3,
+  "textBoxes": [
+    [1, "Hello, world!", 100, 200, "Arial", "black", "left"],
+    [2, "Welcome to the presentation!", 150, 250, "Arial", "black", "center"],
+    [3, "This is a sample text box.", 200, 300, "Arial", "black", "right"]
+  ],
+  "platforms": [
+    [1, 10, 20, 100, 10],
+    [1, 150, 50,  80,  8, "green"],
+    [1, 200, 75, 120, 12, "blue", true]
+  ]
+}

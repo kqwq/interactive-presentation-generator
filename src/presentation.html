@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      // Grap IP address from the URL
+      const ip = window.location.hostname.split(":")[0] ?? "10.104.252.149";
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+      }
+      #qrcode-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        border: 10px solid white;
+        background-color: white;
+        pointer-events: none;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: auto;
+      }
+      small {
+        margin: 6px;
+        font-size: large;
+        color: #333;
+      }
+      #ip-txt {
+        font-size: 28px;
+        color: #333;
+        font-weight: 100;
+        font-family: "Fira Sans", sans-serif;
+        line-height: 0.75;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="canvas-2d"></canvas>
+    <div id="qrcode-container">
+      <div id="qrcode"></div>
+      <small id="ip-info">Connecting to server...</small>
+      <span id="ip-txt"></span>
+    </div>
+    <script src="presentation.js" type="module"></script>
+    <script src="qrcode.js"></script>
+    <script>
+      // Create a QR code based on the qrcode library
+      function displayQRCode() {
+        const link = `${window.location.href.split("/pres")[0]}`;
+        new QRCode(document.getElementById("qrcode"), {
+          text: link,
+          width: 175,
+          height: 175,
+          correctLevel: 0,
+        });
+        const ipInfo = document.getElementById("ip-info");
+        ipInfo.innerText = "Or visit the URL";
+        document.getElementById("ip-txt").innerText = link.split("/")[2];
+      }
+    </script>
+    <script src="page-script-networking.js" type="module"></script>
+  </body>
+</html>

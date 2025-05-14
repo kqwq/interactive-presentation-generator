@@ -1,0 +1,165 @@
+{
+  "$schema": "../src/save-schema.json",
+  "numSlides": 3,
+  "textBoxes": [
+    [
+      1,
+      "Hello, world!",
+      100,
+      200,
+      "Arial",
+      "black",
+      "left"
+    ],
+    [
+      2,
+      "Welcome to the presentation!",
+      150,
+      250,
+      "Arial",
+      "black",
+      "center"
+    ],
+    [
+      3,
+      "This is a sample text box.",
+      200,
+      300,
+      "Arial",
+      "black",
+      "right"
+    ]
+  ],
+  "platforms": [
+    [
+      1,
+      10,
+      20,
+      100,
+      10
+    ],
+    [
+      1,
+      150,
+      50,
+      80,
+      8,
+      "green"
+    ],
+    [
+      1,
+      200,
+      75,
+      120,
+      12,
+      "blue",
+      true
+    ]
+  ],
+  "singleResponseSlides": [
+    {
+      "slide": 4,
+      "prompt": "The capital of France is [MASK]."
+    },
+    {
+      "slide": 6,
+      "prompt": "I picked up a [MASK] from the table."
+    },
+    {
+      "slide": 8,
+      "prompt": "Upon completion of all required courses, a college student receives a [MASK]."
+    },
+    {
+      "slide": 10,
+      "prompt": "The largest land animal is the [MASK]."
+    }
+  ],
+  "kahootQuestions": [
+    {
+      "slide": 15,
+      "question": "Which company developed the BERT language model?",
+      "answers": [
+        "Google",
+        "Facebook",
+        "Microsoft",
+        "Amazon"
+      ],
+      "correctAnswer": "Google"
+    },
+    {
+      "slide": 17,
+      "question": "Which Python class turns a string into a list of tokens?",
+      "answers": [
+        "AutoTokenizer",
+        "TFBertForMaskedLM",
+        "from_pretrained",
+        "transformers"
+      ],
+      "correctAnswer": "AutoTokenizer"
+    },
+    {
+      "slide": 19,
+      "question": "Which of the following processes allows language models to run in only\na few seconds?",
+      "answers": [
+        "Inference",
+        "Training",
+        "The Software Development Lifecycle",
+        "Test-Driven Development"
+      ],
+      "correctAnswer": "Inference"
+    },
+    {
+      "slide": 21,
+      "question": "What does \"softmax\" do in tensorflow?",
+      "answers": [
+        "Normalizes log probabilities",
+        "Converts a tensor to a numpy array",
+        "Finds the \"softest\" value in a tensor",
+        "Computes new log probabilities"
+      ],
+      "correctAnswer": "Normalizes log probabilities"
+    },
+    {
+      "slide": 23,
+      "question": "GPT-2 (including ChatGPT) and BERT are based on the same fundamental\nmachine learning architecture also known as?",
+      "answers": [
+        "Transformer",
+        "Neural Network",
+        "x86",
+        "Word2vec"
+      ],
+      "correctAnswer": "Transformer"
+    },
+    {
+      "slide": 25,
+      "question": "If x is not already defined, is this valid Python 3.8 code?\nx := result.logits[0, maskIndex]",
+      "answers": [
+        "Yes",
+        "No"
+      ],
+      "correctAnswer": "No"
+    },
+    {
+      "slide": 27,
+      "question": "When was BERT published?",
+      "answers": [
+        "1916",
+        "2015",
+        "2016",
+        "2018"
+      ],
+      "correctAnswer": "2018"
+    },
+    {
+      "slide": 29,
+      "question": "What is objectively the best programming language?",
+      "answers": [
+        "C++",
+        "Python",
+        "SNOBOL",
+        "Rust"
+      ],
+      "correctAnswer": "<all>"
+    }
+  ]
+}

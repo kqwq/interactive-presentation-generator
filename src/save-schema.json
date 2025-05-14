@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "../src/save-schema.json",
+  "title": "PresentationLayout",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Schema identifier for this document"
+    },
+    "numSlides": {
+      "type": "integer",
+      "description": "Number of slides in the presentation"
+    },
+    "textBoxes": {
+      "type": "array",
+      "description": "Array of text boxes, each as [slide, text, x, y, (font, color, textAlign) …]",
+      "items": {
+        "type": "array",
+        "minItems": 4,
+        "maxItems": 7,
+        "items": [
+          {
+            "type": "integer",
+            "description": "The slide number (first slide is slide 1)"
+          },
+          {
+            "type": "string",
+            "description": "Text content of the text box"
+          },
+          {
+            "type": "number",
+            "description": "X position of the text box"
+          },
+          {
+            "type": "number",
+            "description": "Y position of the text box"
+          },
+          {
+            "type": "string",
+            "description": "Font of the text box"
+          },
+          {
+            "type": "string",
+            "description": "Color of the text box",
+            "default": "black"
+          },
+          {
+            "type": "string",
+            "description": "Text alignment of the text box",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ]
+          }
+        ],
+        "additionalItems": false
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "description": "Array of platforms, each as [x, y, width, height, (color, colorable)?]",
+      "items": {
+        "type": "array",
+        "minItems": 5,
+        "maxItems": 7,
+        "items": [
+          {
+            "type": "integer",
+            "description": "The slide number (first slide is slide 1) that the platform should appear on"
+          },
+          {
+            "type": "number",
+            "description": "X-coordinate of the platform"
+          },
+          {
+            "type": "number",
+            "description": "Y-coordinate of the platform"
+          },
+          {
+            "type": "number",
+            "description": "Width of the platform"
+          },
+          {
+            "type": "number",
+            "description": "Height of the platform"
+          },
+          {
+            "type": "string",
+            "description": "Fill color of the platform",
+            "default": "gray"
+          },
+          {
+            "type": "boolean",
+            "description": "Whether the platform’s color can be changed",
+            "default": false
+          }
+        ],
+        "additionalItems": false
+      }
+    },
+    "singleResponseSlides": {
+      "type": "array",
+      "description": "Array of slide numbers that prompt a single response. The following slides (e.g. 5 in the case of 4) will reveal the answer.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slide": {
+            "type": "integer",
+            "description": "Slide number that prompts a single response"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The prompt text for the single response"
+          }
+        },
+        "required": [
+          "slide",
+          "prompt"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "kahootQuestions": {
+      "type": "array",
+      "description": "Array of Kahoot questions to embed in slides",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slide": {
+            "type": "integer",
+            "description": "Slide number where question appears"
+          },
+          "question": {
+            "type": "string",
+            "description": "The Kahoot question text"
+          },
+          "answers": {
+            "type": "array",
+            "description": "List of possible answers",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 4
+          },
+          "correctAnswer": {
+            "type": "string",
+            "description": "The correct answer text"
+          }
+        },
+        "required": [
+          "slide",
+          "question",
+          "answers",
+          "correctAnswer"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "numSlides",
+    "textBoxes",
+    "platforms"
+  ],
+  "additionalProperties": false
+}

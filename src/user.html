@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Presentation Client</title>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+        height: calc(100vh - 100px);
+        display: flex;
+        justify-content: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      body > div {
+        /* border: pink 1px solid; */ /* For debugging */
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        display: none;
+      }
+      #sfigure-input {
+        flex-direction: column;
+        gap: 10px;
+        justify-content: center;
+        font-size: 20px;
+        width: 300px;
+        margin: 0 auto;
+      }
+      input {
+        font-size: 20px;
+        padding: 5px;
+      }
+      input[type="color"] {
+        width: 100%;
+        padding: 0;
+      }
+      button {
+        font-size: 20px;
+        padding: 10px;
+        width: 50%;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 0 auto;
+        margin-top: 10px;
+        user-select: none;
+      }
+      button[disabled] {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .game-btn {
+        font-size: 20px;
+        padding: 10px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        user-select: none;
+        color: black;
+      }
+      .game-btn.active {
+        background-color: #ddd;
+        color: #333;
+      }
+      #b-btn {
+        margin-top: 50px;
+      }
+      #kahoot-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: center;
+        font-size: 20px;
+        width: 400px;
+        margin: 0 auto;
+      }
+      .kahoot-btn {
+        font-family: "Fira Sans", sans-serif;
+        font-size: 20px;
+        padding: 10px;
+        width: 90%;
+        background-color: lightgray;
+        border: 2px gray solid;
+        color: black;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 0 auto;
+        margin-top: 10px;
+        user-select: none;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="joy.js"></script>
+  </head>
+  <body>
+    <!-- Loading screen: show connection info -->
+    <div id="stage-LOADING">
+      <h1 id="loading-txt">Loading...</h1>
+      <div style="display: flex; gap: 10px; justify-content: center">
+        <span>IP: <b id="load-ip"></b></span>
+        <span>Port: <b id="load-ws-port"></b></span>
+        <span>Status: <b id="load-status" style="color: red">Start</b></span>
+      </div>
+    </div>
+
+    <!-- Blob screen: control the blob with a joystack and 2 buttons -->
+    <div id="stage-BLOB_CONTROLLER" style="flex-direction: column; justify-content: space-between">
+      <div>
+        <h2 style="font-family: Fira Sans">Blob Controls</h2>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label for="blob-name">Name:</label>
+          <input
+            type="text"
+            id="blob-name"
+            placeholder="Enter blob name"
+            style="margin-bottom: 10px"
+            onchange="send({type: 'change-name', name: this.value})"
+            maxlength="31"
+          />
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label for="blob-color">Color:</label>
+          <input
+            type="color"
+            id="blob-color"
+            onchange="send({type: 'change-color', color: this.value})"
+          />
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: row; gap: 20px; align-items: center">
+        <div id="joyDiv" style="width: 200px; height: 200px; margin-bottom: 20px"></div>
+        <div style="display: flex; flex-direction: row; justify-content: space-between">
+          <button class="game-btn" id="b-btn">B</button>
+          <button class="game-btn" id="a-btn">A</button>
+        </div>
+      </div>
+      <small
+        >On a laptop, move with WASD and press Z to jump
+        <a href="#" onclick="disconnect()">Disconnect</a>.</small
+      >
+    </div>
+
+    <!-- Masked word screen: input the masked word on your device -->
+    <div id="stage-MASKED_WORD">
+      <h1>What is the masked word?</h1>
+      <div id="sfigure-input">
+        <input type="text" id="in-masked-word" placeholder="Predict the word..." />
+        <button id="submit-masked-word" onclick="submit()">Submit</button>
+        <br />
+        <small id="masked-word-info"></small>
+      </div>
+    </div>
+
+    <!-- Kahoot screen: pick one of 4 answer choices -->
+    <div id="stage-KAHOOT">
+      <h1><i>Not</i> Kahoot</h1>
+      <div id="kahoot-question">
+        <h2>Question</h2>
+        <p id="kahoot-question-text">What is the capital of France?</p>
+      </div>
+      <div id="kahoot-options">
+        <button class="kahoot-btn" id="kahoot-opt-1" onclick="kahootChooseOption(1)">1</button>
+        <button class="kahoot-btn" id="kahoot-opt-2" onclick="kahootChooseOption(2)">2</button>
+        <button class="kahoot-btn" id="kahoot-opt-3" onclick="kahootChooseOption(3)">3</button>
+        <button class="kahoot-btn" id="kahoot-opt-4" onclick="kahootChooseOption(4)">4</button>
+      </div>
+      <div id="kahoot-recorded" style="display: none">
+        <h2>Answer recorded: <b id="kahoot-recorded-choice">?</b></h2>
+      </div>
+    </div>
+
+    <!-- Blank screen -->
+    <div id="stage-NONE">
+      <i>No activity for this slide</i>
+    </div>
+  </body>
+  <script>
+    // Helper functions
+    const $ = (el) => document.querySelector(el);
+    const $$ = (el) => document.querySelectorAll(el);
+    const show = (el) => (el.style.display = "block");
+    const showFlex = (el) => (el.style.display = "flex");
+    const hide = (el) => (el.style.display = "none");
+    /** Returns a primary color of maximum saturation and value */
+    function nextRandomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      return `hsl(${hue}, 100%, 50%)`;
+    }
+    /** Converts HSL to HEX */
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = (s * Math.min(l, 1 - l)) / 100;
+      const f = (n) => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color)
+          .toString(16)
+          .padStart(2, "0"); // convert to Hex and prefix "0" if needed
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
+    /** Vibrates the device for a given amount of time (not used) */
+    const softVibrate = (ms) => navigator.vibrate(ms);
+
+    // Constants
+    const host = window.location.host;
+    const ip = host.split(":")[0];
+    const wsport = "9999";
+    const wss = new WebSocket(`ws://${ip}:${wsport}/interact`);
+    const id = Math.random().toString(36).substr(2, 9);
+    const keysDown = {};
+
+    // Variables
+    let layout = null; // Presentation layout object
+    let joy;
+    let lastJoyBroadcast = "";
+    let recieveOptionsTimestamp = 0;
+    let stage = "LOADING"; // LOADING|BLOG_CONTROLLER|MASKED_WORD|etc.
+
+    /** Send a message to the server as JSON */
+    function send(data) {
+      wss.send(JSON.stringify(data));
+    }
+
+    /** Callback function for when the joystick element is touched */
+    function onJoyconChange() {
+      let broadcast = `{"type":"j","p":"${joy.GetX()} ${joy.GetY()}"}`;
+      if (broadcast === lastJoyBroadcast) return;
+      lastJoyBroadcast = broadcast;
+      wss.send(broadcast);
+    }
+
+    /** Callback function for when the user clicks a Kahoot answer choice button */
+    function kahootChooseOption(option) {
+      const optionText = $(`#kahoot-opt-${option}`).textContent;
+      const now = Date.now();
+      const delay = now - recieveOptionsTimestamp;
+      send({ type: "kahoot-choose-option", option: optionText, delay: delay });
+      $$(".kahoot-btn").forEach((btn) => (btn.style.display = "none"));
+      $(`#kahoot-recorded`).style.display = "block";
+      $(`#kahoot-recorded-choice`).textContent = optionText;
+    }
+
+    /** Initialize a screen (called `stage` in code) */
+    function init(newStage) {
+      hide($(`#stage-${stage}`));
+      stage = newStage;
+      showFlex($(`#stage-${stage}`));
+      switch (stage) {
+        case "LOADING": {
+          $("#load-ip").innerText = ip;
+          $("#load-ws-port").innerText = wsport;
+          $("#load-status").innerText = "Connecting...";
+          $("#load-status").style.color = "orange";
+          break;
+        }
+        case "BLOB_CONTROLLER": {
+          if (!joy) {
+            joy = new JoyStick(
+              "joyDiv",
+              {
+                // Gray color
+                internalFillColor: "#cccccc",
+                internalLineWidth: 2,
+                internalStrokeColor: "#555",
+                externalLineWidth: 2,
+                externalStrokeColor: "#999",
+              },
+              onJoyconChange
+            );
+            // Set color to random
+            const myColor = nextRandomColor();
+            $("#blob-color").value = hslToHex(...myColor.match(/\d+/g));
+            send({ type: "change-color", color: myColor });
+            console.log("Connected to server", myColor);
+          }
+          break;
+        }
+        case "MASKED_WORD": {
+          $("#in-masked-word").value = "";
+          $("#in-masked-word").disabled = false;
+          $("#submit-masked-word").disabled = false;
+          $("#masked-word-info").textContent = "";
+          break;
+        }
+      }
+    }
+    init("LOADING");
+
+    function submit() {
+      switch (stage) {
+        case "MASKED_WORD": {
+          const word = $("#in-masked-word").value;
+          if (!word) return;
+          send({ type: "masked-word-response", word });
+          $("#in-masked-word").disabled = true;
+          $("#submit-masked-word").disabled = true;
+          $("#masked-word-info").textContent = "Submitted!";
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    function disconnect() {
+      wss.close();
+    }
+
+    wss.onopen = () => {
+      $("#loading-txt").textContent = `Connection established`;
+      $("#load-status").textContent = `Active`;
+      $("#load-status").style.color = "green";
+      send({ type: "get-current-layout" })
+    };
+    wss.onmessage = (msg) => {
+      const data = JSON.parse(msg.data);
+      switch (data.type) {
+        case "set-layout": {
+          console.log("Recieved layout")
+          console.log(data.layout)
+          layout = data.layout
+          break;
+        }
+        case "pres-change-slide": {
+          const slideToStage = {
+            1: "BLOB_CONTROLLER",
+            2: "BLOB_CONTROLLER",
+            3: "NONE",
+            4: "MASKED_WORD",
+            5: "BLOB_CONTROLLER",
+            6: "MASKED_WORD",
+            7: "BLOB_CONTROLLER",
+            8: "MASKED_WORD",
+            9: "BLOB_CONTROLLER",
+            10: "MASKED_WORD",
+            11: "BLOB_CONTROLLER",
+            12: "BLOB_CONTROLLER", // Code Project #1 - Masked Language Model
+            13: "BLOB_CONTROLLER", // Code Project #2 - Text Generator
+            14: "BLOB_CONTROLLER", // Kahoot title slide
+            15: "KAHOOT", // q1
+            16: "BLOB_CONTROLLER",
+            17: "KAHOOT", // q2
+            18: "BLOB_CONTROLLER",
+            19: "KAHOOT", // q3
+            20: "BLOB_CONTROLLER",
+            21: "KAHOOT", // q4
+            22: "BLOB_CONTROLLER",
+            23: "KAHOOT", // q5
+            24: "BLOB_CONTROLLER",
+            25: "KAHOOT", // q6
+            26: "BLOB_CONTROLLER",
+            27: "KAHOOT", // q7
+            28: "BLOB_CONTROLLER",
+            29: "KAHOOT", // q8
+            30: "BLOB_CONTROLLER",
+            31: "BLOB_CONTROLLER", // Kahoot results slide
+            32: "BLOB_CONTROLLER", // "Thank You" slide
+          };
+          const stage = slideToStage?.[data.slide] ?? "NONE";
+          init(stage);
+          break;
+        }
+        case "kahoot-populate-options": {
+          const options = data.options;
+          $(`#kahoot-recorded`).style.display = "none";
+          for (let i = 0; i < 4; i++) {
+            if (i < options.length) {
+              $(`#kahoot-opt-${i + 1}`).textContent = options[i];
+              $(`#kahoot-opt-${i + 1}`).style.display = "block";
+            } else {
+              $(`#kahoot-opt-${i + 1}`).textContent = "";
+              $(`#kahoot-opt-${i + 1}`).style.display = "none";
+            }
+          }
+          $("#kahoot-question-text").textContent = data.question;
+          recieveOptionsTimestamp = Date.now();
+          break;
+        }
+        default:
+          break;
+      }
+    };
+    wss.onclose = () => {
+      init("LOADING");
+      $("#loading-txt").textContent = `Connection closed`;
+      $("#load-status").textContent = `Closed`;
+      $("#load-status").style.color = "red";
+    };
+    wss.onerror = (e) => {
+      init("LOADING");
+      $("#loading-txt").textContent = `Connection error`;
+      $("#load-status").textContent = `Error ${e.reason}`;
+      $("#load-status").style.color = "red";
+    };
+  </script>
+  <script type="text/javascript">
+    /* Input devices logic */
+
+    // Make game buttons respond to both touch and click
+    $$(".game-btn").forEach((btn) => {
+      btn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        btn.classList.add("active");
+        wss.send(`{"type":"${btn.id.at(0)}"}`);
+        // softVibrate(18); // Turned this off as it is quite distracting
+      });
+      btn.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        btn.classList.remove("active");
+        wss.send(`{"type":"${btn.id.at(0)}-up"}`);
+        // softVibrate(1);
+      });
+      btn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        btn.classList.add("active");
+        wss.send(`{"type":"${btn.id.at(0)}"}`);
+      });
+      btn.addEventListener("mouseup", (e) => {
+        e.preventDefault();
+        btn.classList.remove("active");
+        wss.send(`{"type":"${btn.id.at(0)}-up"}`);
+      });
+      btn.addEventListener("mouseleave", (e) => {
+        e.preventDefault();
+        btn.classList.remove("active");
+        wss.send(`{"type":"${btn.id.at(0)}-up"}`);
+      });
+    });
+
+    // Listen to keys (Z -> B, X -> A, Arrow keys -> joystick, WASD -> joystick)
+    function emulateJoystick(keysDown) {
+      let x = 0;
+      let y = 0;
+      if (keysDown.ArrowUp || keysDown.w) wss.send(`{"type":"a"}`);
+      else wss.send(`{"type":"a-up"}`);
+      if (keysDown.ArrowDown || keysDown.s) y -= 100;
+      if (keysDown.ArrowLeft || keysDown.a) x -= 100;
+      if (keysDown.ArrowRight || keysDown.d) x += 100;
+      wss.send(`{"type":"j","p":"${x} ${y}"}`);
+    }
+    document.addEventListener("keydown", (e) => {
+      console.log(e.key, "down");
+      if (e.repeat) return;
+      switch (e.key) {
+        case "ArrowUp":
+        case "w":
+          keysDown.w = true;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowDown":
+        case "s":
+          keysDown.s = true;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowLeft":
+        case "a":
+          keysDown.a = true;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowRight":
+        case "d":
+          keysDown.d = true;
+          emulateJoystick(keysDown);
+          break;
+        case "z":
+          wss.send(`{"type":"b"}`);
+          $(`#b-btn`).classList.add("active");
+          break;
+        case "x":
+          wss.send(`{"type":"a"}`);
+          $(`#a-btn`).classList.add("active");
+          break;
+        default:
+          break;
+      }
+    });
+    document.addEventListener("keyup", (e) => {
+      switch (e.key) {
+        case "ArrowUp":
+        case "w":
+          keysDown.w = false;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowDown":
+        case "s":
+          keysDown.s = false;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowLeft":
+        case "a":
+          keysDown.a = false;
+          emulateJoystick(keysDown);
+          break;
+        case "ArrowRight":
+        case "d":
+          keysDown.d = false;
+          emulateJoystick(keysDown);
+          break;
+        case "z":
+          wss.send(`{"type":"b-up"}`);
+          $(`#b-btn`).classList.remove("active");
+          break;
+        case "x":
+          wss.send(`{"type":"a-up"}`);
+          $(`#a-btn`).classList.remove("active");
+          break;
+        default:
+          break;
+      }
+    });
+  </script>
+</html>
