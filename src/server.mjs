@@ -14,11 +14,11 @@ function send(ws, data) {
 }
 
 /** Return layout (default.json) */
-function getCurrentLayout() {
+function getCurrentLayout(asJSON = false) {
   const filePath = "./save/default.json"
   if (fs.existsSync(filePath)) {
     const fileContents = fs.readFileSync(filePath, "utf8")
-    return fileContents
+    return asJSON ? JSON.parse(fileContents) : fileContents
   }
   return {
     error: "Layout not found",
@@ -38,7 +38,7 @@ function onPeerMessage(ws, data) {
 
     // When the user requests the current layout
     case "get-current-layout": {
-      send(ws, { type: "set-layout", layout: getCurrentLayout() })
+      send(ws, { type: "set-layout", layout: getCurrentLayout(true) })
     }
 
     // When a user requests to change their blob name
@@ -97,10 +97,8 @@ function onManagerMessage(ws, data, app) {
   switch (data.type) {
     // When the manager requests the current layout
     case "get-current-layout": {
-      ws.send("ai-pres", JSON.stringify({
-        type: "set-layout",
-        layout: getCurrentLayout()
-      }))
+      send(ws, { type: "set-layout", layout: getCurrentLayout(true) })
+      break
     }
 
     // When the manager changes the current slide

@@ -582,6 +582,7 @@ class Bloby {
 }
 
 // Global vars
+let layout // Presentation layout object
 let canvas
 let ctx
 let objs = [] // List of objects to draw
@@ -605,6 +606,13 @@ window.userResponses = userResponses
 function loadSlide() {
   // Clear objects
   // Load objects based on slide number
+
+
+  // TODO: Base new object creation on `layout`
+  console.log("Loading slide", slide.value, layout)
+
+
+
   switch (slide.value) {
     case 1: {
       ridNonBlobsAndSetBlobSpawns(objs)
@@ -706,7 +714,8 @@ e.g. “I picked up a [MASK] from the table.”\n\
 • Transformer - machine learning architecture that uses a “multi-head\nattention mechanism”\n\
 • BERT - a language model developed by Google in 2018\n\
 • Applications of MLMs"
-      blobsById["responses"] = new Text(txt, 160, 310, "50px Arial", "black", "left", 1.5)
+      // blobsById["responses"] =
+      new Text(txt, 160, 310, "50px Arial", "black", "left", 1.5)
       break
     }
     case 4: // "X" responses slides
@@ -1062,6 +1071,14 @@ function draw() {
     }
   }
 
+  // If layout is undefined, show a message in the center of the screen "loading..."
+  if (!layout) {
+    ctx.fillStyle = "black"
+    ctx.font = "50px Arial"
+    ctx.textAlign = "center"
+    ctx.fillText("Loading presentation layout...", WIDTH / 2, HEIGHT / 2)
+  }
+
   // Request next frame
   requestAnimationFrame(draw)
 }
@@ -1080,7 +1097,6 @@ window.addEventListener("keyup", (e) => {
 
 // Main
 init()
-loadSlide()
 draw()
 
 
@@ -1089,6 +1105,7 @@ const wss = new WebSocket(`ws://${ipAddress}:${websocketPort}/manage`)
 wss.onopen = () => {
   displayQRCode()
   console.log("Connected to WebSocket server")
+  wss.send(JSON.stringify({ type: "get-current-layout" }))
 }
 wss.onerror = (err) => {
   console.error("WebSocket error:", err)
@@ -1096,9 +1113,17 @@ wss.onerror = (err) => {
   ipInfoElement.innerText = `Error connecting to server, see logs for details`
 }
 wss.onmessage = (msg) => {
+  console.log(msg)
   const data = JSON.parse(msg.data)
   const { id } = data
   switch (data.type) {
+    // Set presentation layout
+    case "set-layout": {
+      console.log(data.layout)
+      layout = data.layout
+      loadSlide()
+      break
+    }
     // Create new blob
     case "player-join": {
       blobsById[id] = new Bloby()

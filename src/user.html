@@ -329,6 +329,7 @@
       const data = JSON.parse(msg.data);
       switch (data.type) {
         case "set-layout": {
+          
           console.log("Recieved layout")
           console.log(data.layout)
           layout = data.layout

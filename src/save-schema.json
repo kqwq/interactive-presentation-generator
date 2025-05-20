@@ -18,7 +18,7 @@
       "items": {
         "type": "array",
         "minItems": 4,
-        "maxItems": 7,
+        "maxItems": 8,
         "items": [
           {
             "type": "integer",
@@ -48,11 +48,11 @@
           {
             "type": "string",
             "description": "Text alignment of the text box",
-            "enum": [
-              "left",
-              "center",
-              "right"
-            ]
+            "enum": ["left", "center", "right"]
+          },
+          {
+            "type": "number",
+            "description": "Line height of the text box"
           }
         ],
         "additionalItems": false
@@ -115,10 +115,7 @@
             "description": "The prompt text for the single response"
           }
         },
-        "required": [
-          "slide",
-          "prompt"
-        ],
+        "required": ["slide", "prompt"],
         "additionalProperties": false
       },
       "minItems": 0
@@ -151,20 +148,15 @@
             "description": "The correct answer text"
           }
         },
-        "required": [
-          "slide",
-          "question",
-          "answers",
-          "correctAnswer"
-        ],
+        "required": ["slide", "question", "answers", "correctAnswer"],
         "additionalProperties": false
       }
+    },
+    "kahootFinalStandingsSlide": {
+      "type": "integer",
+      "description": "Slide number to display top 3 winners for the Kahoot/quiz"
     }
   },
-  "required": [
-    "numSlides",
-    "textBoxes",
-    "platforms"
-  ],
+  "required": ["numSlides", "textBoxes", "platforms"],
   "additionalProperties": false
 }
