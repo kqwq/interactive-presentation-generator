@@ -100,6 +100,29 @@
         "additionalItems": false
       }
     },
+    "blobSpawnCoordinates": {
+      "type": "array",
+      "description": "Array of coordinates for spawning blobs, each as { slide, x, y }. If no x-y coordinates are provided, the blob will spawn at the center of the screen.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slide": {
+            "type": "integer",
+            "description": "Slide number where the blob should spawn"
+          },
+          "x": {
+            "type": "number",
+            "description": "X-coordinate for the blob spawn"
+          },
+          "y": {
+            "type": "number",
+            "description": "Y-coordinate for the blob spawn"
+          }
+        },
+        "required": ["slide", "x", "y"],
+        "additionalProperties": false
+      }
+    },
     "singleResponseSlides": {
       "type": "array",
       "description": "Array of slide numbers that prompt a single response. The following slides (e.g. 5 in the case of 4) will reveal the answer.",

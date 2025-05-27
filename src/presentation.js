@@ -604,118 +604,151 @@ window.userResponses = userResponses
 
 // Loaders
 function loadSlide() {
+
   // Clear objects
-  // Load objects based on slide number
+  const blobSpawns = layout?.blobSpawnCoordinates?.find(c => c.slide === slide.value) ?? {
+    x: WIDTH / 2,
+    y: HEIGHT / 2
+  }
+  console.log(blobSpawns)
+  for (let i = 0; i < objs.length; i++) {
+    if (objs[i] instanceof Bloby) {
+      objs[i].setNewPos(blobSpawns.x + Math.random(), blobSpawns.y + Math.random())
+      objs[i].visible = true
+    } else {
+      objs.splice(i, 1)
+      i--
+    }
+  }
+  drawBlobs = true
 
+  /* Add elements to the screen */
+  if (!layout?.numSlides) {
+    console.error("No layout or slide data found for slide", slide.value)
+    return
+  }
 
-  // TODO: Base new object creation on `layout`
-  console.log("Loading slide", slide.value, layout)
+  // Add text boxes
+  const textBoxes = layout.textBoxes.filter((tb) => tb[0] === slide.value)
+  for (const textBox of textBoxes) {
+    new Text(...textBox.slice(1))
+  }
+
+  // Add platforms
+  const platforms = layout.platforms.filter((p) => p[0] === slide.value)
+  for (const platform of platforms) {
+    new Platform(...platform.slice(1))
+  }
+
+  // If it is a single response type slide, display slide-specific text boxes
+  const srQuestion = layout?.singleResponseSlides?.find((s) => s.slide === slide.value)
+  if (srQuestion) {
+    new Text(srQuestion.prompt, 80, 310, "50px Arial", "#444", "left")
+    new Text("Responses: 0", WIDTH / 2 + 10, HEIGHT / 2, "40px Arial", "black", "center")
+  }
+
 
 
 
   switch (slide.value) {
     case 1: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Masked Language Models", WIDTH / 2, HEIGHT / 2, "95px Arial")
-      new Text("Welcome to the AI\nCompetition Club!", 140, 135, "25px Fira Sans", "#333", "left")
-      new Text(
-        "Each slide has a minigame\nScan the QR code to join",
-        WIDTH - 360,
-        HEIGHT - 160,
-        "25px Fira Sans",
-        "#333",
-        "left"
-      )
-      const xywhBoxes = [
-        [1, 3, 2, 1], // Top row
-        [5, 4, 2, 1],
-        [8, 3, 5, 1],
-        [0, 6, 1, 2], // Middle row
-        [2, 8.75, 1, 1],
-        [0, 11, 1, 2], // Bottom row
-        [4, 13, 1, 2],
-        [7, 11, 1, 3],
-        [9, 10, 1, 2],
-        [11, 12, 1, 1],
-        [14, 9, 1, 2],
-      ]
-      for (const [x, y, w, h] of xywhBoxes) {
-        new Platform(x * 120, y * 67.5, w * 120, h * 67.5)
-      }
-      // Add platforms for the left, right, and bottom edges
-      new Platform(-195, 0, 200, HEIGHT) // Left edge extension
-      new Platform(WIDTH - 5, 0, 200, HEIGHT) // Right edge extension
-      new Platform(0, HEIGHT - 5, WIDTH, 200) // Bottom edge extension
-      new Text(
-        "Kyle Wells\nDate: <t:1743021000>",
-        200,
-        HEIGHT / 2 + 205,
-        "bold 34px monospace",
-        "#bbb",
-        "left"
-      )
-      // for (let i = 0; i < 1000; i++) {
-      //   const x = randint(0, WIDTH);
-      //   const y = randint(0, HEIGHT);
-      //   new Coin(x, y);
+      // ridNonBlobsAndSetBlobSpawns(objs)
+      // new Text("Masked Language Models", WIDTH / 2, HEIGHT / 2, "95px Arial")
+      // new Text("Welcome to the AI\nCompetition Club!", 140, 135, "25px Fira Sans", "#333", "left")
+      // new Text(
+      //   "Each slide has a minigame\nScan the QR code to join",
+      //   WIDTH - 360,
+      //   HEIGHT - 160,
+      //   "25px Fira Sans",
+      //   "#333",
+      //   "left"
+      // )
+      // const xywhBoxes = [
+      //   [1, 3, 2, 1], // Top row
+      //   [5, 4, 2, 1],
+      //   [8, 3, 5, 1],
+      //   [0, 6, 1, 2], // Middle row
+      //   [2, 8.75, 1, 1],
+      //   [0, 11, 1, 2], // Bottom row
+      //   [4, 13, 1, 2],
+      //   [7, 11, 1, 3],
+      //   [9, 10, 1, 2],
+      //   [11, 12, 1, 1],
+      //   [14, 9, 1, 2],
+      // ]
+      // for (const [x, y, w, h] of xywhBoxes) {
+      //   new Platform(x * 120, y * 67.5, w * 120, h * 67.5)
       // }
+      // // Add platforms for the left, right, and bottom edges
+      // new Platform(-195, 0, 200, HEIGHT) // Left edge extension
+      // new Platform(WIDTH - 5, 0, 200, HEIGHT) // Right edge extension
+      // new Platform(0, HEIGHT - 5, WIDTH, 200) // Bottom edge extension
+      // new Text(
+      //   "Kyle Wells\nDate: <t:1743021000>",
+      //   200,
+      //   HEIGHT / 2 + 205,
+      //   "bold 34px monospace",
+      //   "#bbb",
+      //   "left"
+      // )
+
       break
     }
     case 2: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Outline", 80, 170, "80px Arial", "black", "left")
-      const txt =
-        "• Definitions\n\n• BERT\n\n• Code project #1\n\n• Code project #2\n\n• Test your knowledge!"
-      new Text(txt, 160, 310, "50px Arial", "black", "left")
-      const boxX = WIDTH - 800 - 80
-      const boxY = (HEIGHT - 800) / 2
-      const boxThickness = 20
-      new Platform(boxX, boxY, 800, boxThickness) // Top
-      new Platform(boxX, boxY + 800 - boxThickness, 800, boxThickness) // Bottom
-      new Platform(boxX, boxY, boxThickness, 800) // Left
-      new Platform(boxX + 800 - boxThickness, boxY, boxThickness, 800) // Right
+      // ridNonBlobsAndSetBlobSpawns(objs)
+      // new Text("Outline", 80, 170, "80px Arial", "black", "left")
+      // const txt =
+      //   "• Definitions\n\n• BERT\n\n• Code project #1\n\n• Code project #2\n\n• Test your knowledge!"
+      // new Text(txt, 160, 310, "50px Arial", "black", "left")
+      // const boxX = WIDTH - 800 - 80
+      // const boxY = (HEIGHT - 800) / 2
+      // const boxThickness = 20
+      // new Platform(boxX, boxY, 800, boxThickness) // Top
+      // new Platform(boxX, boxY + 800 - boxThickness, 800, boxThickness) // Bottom
+      // new Platform(boxX, boxY, boxThickness, 800) // Left
+      // new Platform(boxX + 800 - boxThickness, boxY, boxThickness, 800) // Right
       break
     }
     case 3: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      drawBlobs = false
+      //       ridNonBlobsAndSetBlobSpawns(objs)
+      //       drawBlobs = false
 
-      const boxes = []
-      for (let i = 0; i < 20; i++) {
-        let x, y, w, h, isNear
-        do {
-          x = randint(0, WIDTH - 100)
-          y = randint(0, HEIGHT - 100)
-          w = randint(50, 200)
-          h = randint(50, 100)
-          isNear = boxes.some((box) => Math.abs(box.x - x) < 20 && Math.abs(box.y - y) < 20)
-        } while (isNear)
-        boxes.push({ x, y, w, h })
-      }
-      boxes.push({
-        x: 0,
-        y: HEIGHT - 10,
-        w: WIDTH,
-        h: 50,
-      })
-      let ind = 0
-      boxes.forEach(({ x, y, w, h }) => {
-        new Platform(x, y, w, h, "#fff")
-      })
-      for (let i = 0; i < 20; i++) {
-        new Coin(0, 0, 10, "#fff").spawn()
-      }
+      //       const boxes = []
+      //       for (let i = 0; i < 20; i++) {
+      //         let x, y, w, h, isNear
+      //         do {
+      //           x = randint(0, WIDTH - 100)
+      //           y = randint(0, HEIGHT - 100)
+      //           w = randint(50, 200)
+      //           h = randint(50, 100)
+      //           isNear = boxes.some((box) => Math.abs(box.x - x) < 20 && Math.abs(box.y - y) < 20)
+      //         } while (isNear)
+      //         boxes.push({ x, y, w, h })
+      //       }
+      //       boxes.push({
+      //         x: 0,
+      //         y: HEIGHT - 10,
+      //         w: WIDTH,
+      //         h: 50,
+      //       })
+      //       let ind = 0
+      //       boxes.forEach(({ x, y, w, h }) => {
+      //         new Platform(x, y, w, h, "#fff")
+      //       })
+      //       for (let i = 0; i < 20; i++) {
+      //         new Coin(0, 0, 10, "#fff").spawn()
+      //       }
 
-      new Text("Definitions", 80, 170, "80px Arial", "black", "left")
-      const txt =
-        "• Masked Language Model - predicts a “masked” word in a sentence\n\
-e.g. “I picked up a [MASK] from the table.”\n\
-• Attention - determines importance of each word relative to each other\n\
-• Transformer - machine learning architecture that uses a “multi-head\nattention mechanism”\n\
-• BERT - a language model developed by Google in 2018\n\
-• Applications of MLMs"
-      // blobsById["responses"] =
-      new Text(txt, 160, 310, "50px Arial", "black", "left", 1.5)
+      //       new Text("Definitions", 80, 170, "80px Arial", "black", "left")
+      //       const txt =
+      //         "• Masked Language Model - predicts a “masked” word in a sentence\n\
+      // e.g. “I picked up a [MASK] from the table.”\n\
+      // • Attention - determines importance of each word relative to each other\n\
+      // • Transformer - machine learning architecture that uses a “multi-head\nattention mechanism”\n\
+      // • BERT - a language model developed by Google in 2018\n\
+      // • Applications of MLMs"
+      //       // blobsById["responses"] =
+      //       new Text(txt, 160, 310, "50px Arial", "black", "left", 1.5)
       break
     }
     case 4: // "X" responses slides
@@ -723,17 +756,17 @@ e.g. “I picked up a [MASK] from the table.”\n\
     case 8:
     case 10: {
       userResponses.maskedWord.splice(0, userResponses.maskedWord.length)
-      ridNonBlobsAndSetBlobSpawns(objs)
-      drawBlobs = false
-      new Text("Predicting a masked word", 80, 170, "80px Arial", "black", "left")
-      const prompts = [
-        "The capital of France is [MASK].",
-        "I picked up a [MASK] from the table.",
-        "Upon completion of all required courses, a college student receives a [MASK].",
-        "The largest land animal is the [MASK].",
-      ]
-      new Text(prompts[slide.value / 2 - 2], 80, 310, "50px Arial", "#444", "left")
-      new Text("Responses: 0", WIDTH / 2 + 10, HEIGHT / 2, "40px Arial", "black", "center")
+      // ridNonBlobsAndSetBlobSpawns(objs)
+      // drawBlobs = false
+      // new Text("Predicting a masked word", 80, 170, "80px Arial", "black", "left")
+      // const prompts = [
+      //   "The capital of France is [MASK].",
+      //   "I picked up a [MASK] from the table.",
+      //   "Upon completion of all required courses, a college student receives a [MASK].",
+      //   "The largest land animal is the [MASK].",
+      // ]
+      // new Text(prompts[slide.value / 2 - 2], 80, 310, "50px Arial", "#444", "left")
+
       break
     }
     case 5:
