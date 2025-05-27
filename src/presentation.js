@@ -42,32 +42,7 @@ function getTrueRandomColor() {
   return `#${Math.floor(Math.random() * 16777215).toString(16)}`
 }
 
-function getBlobSpawnXY() {
-  const sl = slide.value
-  if (sl === 1) {
-    return [randfloat(20, WIDTH / 4 - 20), HEIGHT - 50]
-  } else if (sl === 2) {
-    return [randfloat(WIDTH * 0.6, WIDTH * 0.9), HEIGHT * 0.75]
-  } else if (14 <= sl && sl <= 30) {
-    return [(WIDTH * 3) / 4 + Math.random(), HEIGHT * 0.05]
-  } else if (sl === 31) {
-    // Podium
-    return [WIDTH / 2, HEIGHT / 4]
-  }
-  return [WIDTH / 2, HEIGHT / 2]
-}
-function ridNonBlobsAndSetBlobSpawns(_objs) {
-  for (let i = 0; i < _objs.length; i++) {
-    if (!(_objs[i] instanceof Bloby)) {
-      _objs.splice(i, 1)
-      i--
-    } else {
-      _objs[i].setNewPos(...getBlobSpawnXY())
-      _objs[i].visible = true
-    }
-  }
-  drawBlobs = true
-}
+
 
 function cageOfPlatforms(x, y, w, h, thickness, color) {
   new Platform(x - thickness, y - thickness, w + 2 * thickness, thickness, color) // Top
@@ -119,65 +94,6 @@ const aiResponses = [
       return { word: y[1], width: parseFloat(y[2]) }
     })
   )
-const quizQuestions = [
-  {
-    question: "Which company developed the BERT language model?",
-    answers: ["Google", "Facebook", "Microsoft", "Amazon"],
-    correctAnswer: "Google",
-  },
-  {
-    question: "Which Python class turns a string into a list of tokens?",
-    answers: ["AutoTokenizer", "TFBertForMaskedLM", "from_pretrained", "transformers"],
-    correctAnswer: "AutoTokenizer",
-  },
-  {
-    question:
-      "Which of the following processes allows language models to run in only\na few seconds?",
-    answers: [
-      "Inference",
-      "Training",
-      "The Software Development Lifecycle",
-      "Test-Driven Development",
-    ],
-    correctAnswer: "Inference",
-  },
-  {
-    question: 'What does "softmax" do in tensorflow?',
-    answers: [
-      "Normalizes log probabilities",
-      "Converts a tensor to a numpy array",
-      'Finds the "softest" value in a tensor',
-      "Computes new log probabilities",
-    ],
-    correctAnswer: "Normalizes log probabilities",
-  },
-  {
-    question:
-      "GPT-2 (including ChatGPT) and BERT are based on the same fundamental\nmachine learning architecture also known as?",
-    answers: ["Transformer", "Neural Network", "x86", "Word2vec"],
-    correctAnswer: "Transformer",
-  },
-  {
-    question:
-      "If x is not already defined, is this valid Python 3.8 code?\nx := result.logits[0, maskIndex]",
-    answers: ["Yes", "No"],
-    correctAnswer: "No",
-  },
-  {
-    question: "When was BERT published?",
-    answers: ["1916", "2015", "2016", "2018"],
-    correctAnswer: "2018",
-  },
-  {
-    question: "What is objectively the best programming language?",
-    answers: ["C++", "Python", "SNOBOL", "Rust"],
-    correctAnswer: "<all>",
-  },
-]
-// Shuffle quiz question answers
-quizQuestions.forEach((q) => {
-  q.answers = q.answers.sort(() => Math.random() - 0.5)
-})
 
 // Classes
 class DecorativeBox {
@@ -314,8 +230,8 @@ class Text {
 }
 class Bloby {
   constructor(
-    x = getBlobSpawnXY()[0],
-    y = getBlobSpawnXY()[1],
+    x = WIDTH / 2,
+    y = HEIGHT / 2,
     radius = 20,
     color = "white",
     name = ""
@@ -581,6 +497,206 @@ class Bloby {
   }
 }
 
+function drawSingleResponseSlide2Elements() {
+  const responsesTxt = objs.find((o) => o.text?.toLowerCase()?.includes("responses"))
+  if (responsesTxt) objs.splice(objs.indexOf(responsesTxt), 1)
+  drawBlobs = true
+  const font = "italic 40px Arial"
+  new Text("BERT", WIDTH / 4, HEIGHT / 2 - 80, font, "#444", "center")
+  new Text("AI Club Responses", (WIDTH * 3) / 4, HEIGHT / 2 - 80, font, "#444", "center")
+  new Platform(WIDTH * 0.25, HEIGHT - 10, WIDTH / 2, 50)
+
+  const aiClubResponses = getWordFrequencyBreakdown(userResponses.maskedWord)
+  const bertResponses = aiResponses[(slide.value + 1) / 2 - 3]
+  const bothRes = [bertResponses, aiClubResponses]
+
+  for (let x = 0; x < 2; x++) {
+    const res = bothRes[x]
+    const color = ["#0097a7", "#ffab40"][x]
+    let maxBarWidth = -1
+    for (let i = 0; i < res.length; i++) {
+      maxBarWidth = Math.max(maxBarWidth, res[i].width)
+    }
+    const chartArea = {
+      x: 0,
+      y: HEIGHT / 2 - 20,
+      width: (WIDTH / 4) * 0.8,
+      height: HEIGHT / 2 - 50,
+      font: "30px Arial",
+    }
+    if (res.length > 30) {
+      chartArea.font = "15px Arial"
+    } else if (res.length > 20) {
+      chartArea.font = "20px Arial"
+    }
+    const barWidthMultiplier = chartArea.width / maxBarWidth
+    const itemsForAlignment = Math.max(5, res.length)
+    for (let i = 0; i < res.length; i++) {
+      chartArea.x = x * (WIDTH / 2) + WIDTH * 0.25
+      const { word, width } = res[i]
+      // Label left of bar
+      console.log("hi", word, width)
+      new Text(
+        word,
+        chartArea.x - 10,
+        chartArea.y +
+        (i / itemsForAlignment) * chartArea.height +
+        chartArea.height / itemsForAlignment / 4,
+        chartArea.font,
+        "black",
+        "right"
+      )
+      // Colored bar
+      new Platform(
+        chartArea.x,
+        chartArea.y + (i / itemsForAlignment) * chartArea.height,
+        width * barWidthMultiplier,
+        chartArea.height / itemsForAlignment / 2,
+        color,
+        true
+      )
+      // Probability/amount right of bar
+      new Text(
+        width.toString(),
+        chartArea.x + width * barWidthMultiplier + 10,
+        chartArea.y +
+        (i / itemsForAlignment) * chartArea.height +
+        chartArea.height / itemsForAlignment / 4,
+        chartArea.font,
+        "black",
+        "left"
+      )
+    }
+  }
+}
+function drawKahootQuestionSlideElements1(qq) {
+  new Text("Test your knowledge", 80, 170, "80px Arial", "black", "left")
+  // const qq = quizQuestions[(slide.value - 15) / 2]
+  new Text("Q: " + qq.question, 80, 370, "50px Arial", "#444", "left")
+  new Text(
+    "Vote on your device!",
+    WIDTH / 2,
+    HEIGHT / 2 - 10,
+    "50px Fira Sans",
+    "#444",
+    "center"
+  )
+  const xy = [
+    [WIDTH * 0.15, HEIGHT * 0.6],
+    [WIDTH * 0.55, HEIGHT * 0.6],
+    [WIDTH * 0.15, HEIGHT * 0.8],
+    [WIDTH * 0.55, HEIGHT * 0.8],
+  ]
+  const o = 4
+  const dx = WIDTH * 0.3
+  const dy = HEIGHT * 0.1
+  for (let i = 0; i < qq.answers.length; i++) {
+    new DecorativeBox(xy[i][0], xy[i][1], dx, dy, "lightgray")
+    new DecorativeBox(xy[i][0] - o, xy[i][1] - o, dx + o * 2, dy + o * 2, "gray")
+    cageOfPlatforms(xy[i][0], xy[i][1], dx, dy, HEIGHT * 0.1, "#ff00ff00")
+    new Text(
+      qq.answers[i],
+      xy[i][0] + dx / 2,
+      xy[i][1] + dy / 2,
+      "30px Fira Sans",
+      "black",
+      "center"
+    )
+  }
+  // Didn't vote box
+  cageOfPlatforms((WIDTH * 5) / 8, 0, WIDTH / 4, HEIGHT / 4 - 10, 15, "gray")
+  new Text(
+    "Box of shame\n(didn't vote)",
+    (WIDTH * 3) / 4,
+    HEIGHT / 8,
+    "30px Fira Sans",
+    "black",
+    "center"
+  )
+}
+function drawKahootQuestionSlideElements2(qq) {
+
+  objs.filter((o) => o instanceof Bloby).forEach((o) => (o.visible = true))
+  // Show check box emoji if correct, cross if incorrect
+  // const qq = quizQuestions[(slide.value - 16) / 2]
+  const xy = [
+    [WIDTH * 0.15, HEIGHT * 0.6],
+    [WIDTH * 0.55, HEIGHT * 0.6],
+    [WIDTH * 0.15, HEIGHT * 0.8],
+    [WIDTH * 0.55, HEIGHT * 0.8],
+  ]
+  const dx = WIDTH * 0.3
+  const dy = HEIGHT * 0.1
+  const correctIndex = qq.answers.indexOf(qq.correctAnswer)
+  for (let i = 0; i < qq.answers.length; i++) {
+    let emoji = i === correctIndex ? "✅" : "❌"
+    if (qq.correctAnswer === "<all>") {
+      emoji = "✅"
+    }
+    new Text(emoji, xy[i][0] + dx, xy[i][1], "50px Arial", "black", "center")
+  }
+  // For every blob, check if they got it right and update points
+  for (const obj of objs) {
+    if (obj instanceof Bloby) {
+      const answer = obj.kahootAnswer
+      if (answer === qq.correctAnswer || qq.correctAnswer === "<all>") {
+        obj.kahootPoints += 1
+      }
+    }
+  }
+
+}
+function drawKahootFinalStandingsElements() {
+
+  new Text("Results", WIDTH / 2, 100, "80px Arial", "black", "center")
+  // Display results as a list
+  const sortedBlobs = objs
+    .filter((o) => o instanceof Bloby)
+    .sort((a, b) => b.kahootPoints - a.kahootPoints || a.kahootTotalDelay - b.kahootTotalDelay)
+  const top3Texts = sortedBlobs.map(
+    (b, i) => `${b.name}\n${b.kahootPoints} pts\n${(b.kahootTotalDelay / 1000).toFixed(1)} s`
+  )
+
+  // Platforms
+  new Platform(WIDTH / 2 - 200, HEIGHT * 0.4, 400, 20, "gray")
+  // Podiums
+  const podiumWidth = 180
+  const makePodium = (blX, blY, type, text, blob) => {
+    const c = {
+      gold: "#ffd700",
+      silver: "#c0c0c0",
+      bronze: "#cd7f32",
+    }[type]
+    const h = {
+      gold: 350,
+      silver: 280,
+      bronze: 200,
+    }[type]
+    new Platform(blX, blY - h, podiumWidth, h, c)
+    new Text(text, blX + podiumWidth / 2, blY - h + 20, "30px Arial", "black", "center")
+    blob.setNewPos(blX + podiumWidth / 2, blY - h - 12)
+  }
+  const podiumGap = 20
+  const x = WIDTH / 4
+  const y = HEIGHT * 0.9
+  if (top3Texts.length >= 2)
+    makePodium(x - podiumWidth - podiumGap, y, "silver", top3Texts[1], sortedBlobs[1])
+  if (top3Texts.length >= 1) makePodium(x, y, "gold", top3Texts[0], sortedBlobs[0])
+  if (top3Texts.length >= 3)
+    makePodium(x + podiumWidth + podiumGap, y, "bronze", top3Texts[2], sortedBlobs[2])
+
+  // Small podiums on the right side
+  for (let i = 3; i < Math.min(sortedBlobs.length, 10); i++) {
+    new Platform(WIDTH / 2 + 100 + i * 90, HEIGHT * 0.75, 50, HEIGHT * 0.15, "gray", true)
+    sortedBlobs[i].setNewPos(WIDTH / 2 + 100 + i * 90 + 25, HEIGHT * 0.75 - 12)
+  }
+
+  // Any other blobs not in the top 10, spawn on platform at top
+  for (let i = 10; i < sortedBlobs.length; i++) {
+    sortedBlobs[i].setNewPos(WIDTH / 2 + Math.random(), HEIGHT * 0.3 - 12)
+  }
+}
+
 // Global vars
 let layout // Presentation layout object
 let canvas
@@ -610,7 +726,6 @@ function loadSlide() {
     x: WIDTH / 2,
     y: HEIGHT / 2
   }
-  console.log(blobSpawns)
   for (let i = 0; i < objs.length; i++) {
     if (objs[i] instanceof Bloby) {
       objs[i].setNewPos(blobSpawns.x + Math.random(), blobSpawns.y + Math.random())
@@ -630,6 +745,7 @@ function loadSlide() {
 
   // Add text boxes
   const textBoxes = layout.textBoxes.filter((tb) => tb[0] === slide.value)
+  console.log(textBoxes)
   for (const textBox of textBoxes) {
     new Text(...textBox.slice(1))
   }
@@ -640,397 +756,53 @@ function loadSlide() {
     new Platform(...platform.slice(1))
   }
 
-  // If it is a single response type slide, display slide-specific text boxes
+  // SINGLE RESPONSE SLIDE 1
   const srQuestion = layout?.singleResponseSlides?.find((s) => s.slide === slide.value)
   if (srQuestion) {
     new Text(srQuestion.prompt, 80, 310, "50px Arial", "#444", "left")
     new Text("Responses: 0", WIDTH / 2 + 10, HEIGHT / 2, "40px Arial", "black", "center")
   }
 
+  // SINGLE RESPONSE SLIDE 2
+  const srQuestion2 = layout?.singleResponseSlides?.find((s) => s.slide === slide.value - 1)
+  if (srQuestion2) {
+    drawSingleResponseSlide2Elements()
+  }
 
-
-
-  switch (slide.value) {
-    case 1: {
-      // ridNonBlobsAndSetBlobSpawns(objs)
-      // new Text("Masked Language Models", WIDTH / 2, HEIGHT / 2, "95px Arial")
-      // new Text("Welcome to the AI\nCompetition Club!", 140, 135, "25px Fira Sans", "#333", "left")
-      // new Text(
-      //   "Each slide has a minigame\nScan the QR code to join",
-      //   WIDTH - 360,
-      //   HEIGHT - 160,
-      //   "25px Fira Sans",
-      //   "#333",
-      //   "left"
-      // )
-      // const xywhBoxes = [
-      //   [1, 3, 2, 1], // Top row
-      //   [5, 4, 2, 1],
-      //   [8, 3, 5, 1],
-      //   [0, 6, 1, 2], // Middle row
-      //   [2, 8.75, 1, 1],
-      //   [0, 11, 1, 2], // Bottom row
-      //   [4, 13, 1, 2],
-      //   [7, 11, 1, 3],
-      //   [9, 10, 1, 2],
-      //   [11, 12, 1, 1],
-      //   [14, 9, 1, 2],
-      // ]
-      // for (const [x, y, w, h] of xywhBoxes) {
-      //   new Platform(x * 120, y * 67.5, w * 120, h * 67.5)
-      // }
-      // // Add platforms for the left, right, and bottom edges
-      // new Platform(-195, 0, 200, HEIGHT) // Left edge extension
-      // new Platform(WIDTH - 5, 0, 200, HEIGHT) // Right edge extension
-      // new Platform(0, HEIGHT - 5, WIDTH, 200) // Bottom edge extension
-      // new Text(
-      //   "Kyle Wells\nDate: <t:1743021000>",
-      //   200,
-      //   HEIGHT / 2 + 205,
-      //   "bold 34px monospace",
-      //   "#bbb",
-      //   "left"
-      // )
-
-      break
-    }
-    case 2: {
-      // ridNonBlobsAndSetBlobSpawns(objs)
-      // new Text("Outline", 80, 170, "80px Arial", "black", "left")
-      // const txt =
-      //   "• Definitions\n\n• BERT\n\n• Code project #1\n\n• Code project #2\n\n• Test your knowledge!"
-      // new Text(txt, 160, 310, "50px Arial", "black", "left")
-      // const boxX = WIDTH - 800 - 80
-      // const boxY = (HEIGHT - 800) / 2
-      // const boxThickness = 20
-      // new Platform(boxX, boxY, 800, boxThickness) // Top
-      // new Platform(boxX, boxY + 800 - boxThickness, 800, boxThickness) // Bottom
-      // new Platform(boxX, boxY, boxThickness, 800) // Left
-      // new Platform(boxX + 800 - boxThickness, boxY, boxThickness, 800) // Right
-      break
-    }
-    case 3: {
-      //       ridNonBlobsAndSetBlobSpawns(objs)
-      //       drawBlobs = false
-
-      //       const boxes = []
-      //       for (let i = 0; i < 20; i++) {
-      //         let x, y, w, h, isNear
-      //         do {
-      //           x = randint(0, WIDTH - 100)
-      //           y = randint(0, HEIGHT - 100)
-      //           w = randint(50, 200)
-      //           h = randint(50, 100)
-      //           isNear = boxes.some((box) => Math.abs(box.x - x) < 20 && Math.abs(box.y - y) < 20)
-      //         } while (isNear)
-      //         boxes.push({ x, y, w, h })
-      //       }
-      //       boxes.push({
-      //         x: 0,
-      //         y: HEIGHT - 10,
-      //         w: WIDTH,
-      //         h: 50,
-      //       })
-      //       let ind = 0
-      //       boxes.forEach(({ x, y, w, h }) => {
-      //         new Platform(x, y, w, h, "#fff")
-      //       })
-      //       for (let i = 0; i < 20; i++) {
-      //         new Coin(0, 0, 10, "#fff").spawn()
-      //       }
-
-      //       new Text("Definitions", 80, 170, "80px Arial", "black", "left")
-      //       const txt =
-      //         "• Masked Language Model - predicts a “masked” word in a sentence\n\
-      // e.g. “I picked up a [MASK] from the table.”\n\
-      // • Attention - determines importance of each word relative to each other\n\
-      // • Transformer - machine learning architecture that uses a “multi-head\nattention mechanism”\n\
-      // • BERT - a language model developed by Google in 2018\n\
-      // • Applications of MLMs"
-      //       // blobsById["responses"] =
-      //       new Text(txt, 160, 310, "50px Arial", "black", "left", 1.5)
-      break
-    }
-    case 4: // "X" responses slides
-    case 6:
-    case 8:
-    case 10: {
-      userResponses.maskedWord.splice(0, userResponses.maskedWord.length)
-      // ridNonBlobsAndSetBlobSpawns(objs)
-      // drawBlobs = false
-      // new Text("Predicting a masked word", 80, 170, "80px Arial", "black", "left")
-      // const prompts = [
-      //   "The capital of France is [MASK].",
-      //   "I picked up a [MASK] from the table.",
-      //   "Upon completion of all required courses, a college student receives a [MASK].",
-      //   "The largest land animal is the [MASK].",
-      // ]
-      // new Text(prompts[slide.value / 2 - 2], 80, 310, "50px Arial", "#444", "left")
-
-      break
-    }
-    case 5:
-    case 7:
-    case 9:
-    case 11: {
-      const responsesTxt = objs.find((o) => o.text?.toLowerCase()?.includes("responses"))
-      if (responsesTxt) objs.splice(objs.indexOf(responsesTxt), 1)
-      drawBlobs = true
-      const font = "italic 40px Arial"
-      new Text("BERT", WIDTH / 4, HEIGHT / 2 - 80, font, "#444", "center")
-      new Text("AI Club Responses", (WIDTH * 3) / 4, HEIGHT / 2 - 80, font, "#444", "center")
-      new Platform(WIDTH * 0.25, HEIGHT - 10, WIDTH / 2, 50)
-
-      const aiClubResponses = getWordFrequencyBreakdown(userResponses.maskedWord)
-      const bertResponses = aiResponses[(slide.value + 1) / 2 - 3]
-      const bothRes = [bertResponses, aiClubResponses]
-
-      for (let x = 0; x < 2; x++) {
-        const res = bothRes[x]
-        const color = ["#0097a7", "#ffab40"][x]
-        let maxBarWidth = -1
-        for (let i = 0; i < res.length; i++) {
-          maxBarWidth = Math.max(maxBarWidth, res[i].width)
-        }
-        const chartArea = {
-          x: 0,
-          y: HEIGHT / 2 - 20,
-          width: (WIDTH / 4) * 0.8,
-          height: HEIGHT / 2 - 50,
-          font: "30px Arial",
-        }
-        if (res.length > 30) {
-          chartArea.font = "15px Arial"
-        } else if (res.length > 20) {
-          chartArea.font = "20px Arial"
-        }
-        const barWidthMultiplier = chartArea.width / maxBarWidth
-        const itemsForAlignment = Math.max(5, res.length)
-        for (let i = 0; i < res.length; i++) {
-          chartArea.x = x * (WIDTH / 2) + WIDTH * 0.25
-          const { word, width } = res[i]
-          // Label left of bar
-          console.log("hi", word, width)
-          new Text(
-            word,
-            chartArea.x - 10,
-            chartArea.y +
-            (i / itemsForAlignment) * chartArea.height +
-            chartArea.height / itemsForAlignment / 4,
-            chartArea.font,
-            "black",
-            "right"
-          )
-          // Colored bar
-          new Platform(
-            chartArea.x,
-            chartArea.y + (i / itemsForAlignment) * chartArea.height,
-            width * barWidthMultiplier,
-            chartArea.height / itemsForAlignment / 2,
-            color,
-            true
-          )
-          // Probability/amount right of bar
-          new Text(
-            width.toString(),
-            chartArea.x + width * barWidthMultiplier + 10,
-            chartArea.y +
-            (i / itemsForAlignment) * chartArea.height +
-            chartArea.height / itemsForAlignment / 4,
-            chartArea.font,
-            "black",
-            "left"
-          )
-        }
-      }
-      break
-    }
-    case 12: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Code Project #1 - Masked Language Model", 80, 170, "80px Arial", "black", "left")
-      new Platform(0, HEIGHT - 10, WIDTH, 50, "gray")
-      break
-    }
-    case 13: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Code Project #2 - Text Generator", 80, 170, "80px Arial", "black", "left")
-      new Platform(0, HEIGHT - 10, WIDTH, 50, "gray")
-
-      break
-    }
-    case 14: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Quiz", WIDTH / 2, HEIGHT / 2, "80px Arial", "black", "center")
-      new Platform(0, HEIGHT - 10, WIDTH, 50, "gray")
-      objs.filter((o) => o instanceof Bloby).forEach((o) => (o.kahootPoints = 0))
-      objs.filter((o) => o instanceof Bloby).forEach((o) => (o.kahootTotalDelay = 0))
-      break
-    }
-    case 15: // Prompt Kahoot question and options
-    case 17:
-    case 19:
-    case 21:
-    case 23:
-    case 25:
-    case 27:
-    case 29: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Test your knowledge", 80, 170, "80px Arial", "black", "left")
-      const qq = quizQuestions[(slide.value - 15) / 2]
-      new Text("Q: " + qq.question, 80, 370, "50px Arial", "#444", "left")
-      new Text(
-        "Vote on your device!",
-        WIDTH / 2,
-        HEIGHT / 2 - 10,
-        "50px Fira Sans",
-        "#444",
-        "center"
-      )
-      const xy = [
-        [WIDTH * 0.15, HEIGHT * 0.6],
-        [WIDTH * 0.55, HEIGHT * 0.6],
-        [WIDTH * 0.15, HEIGHT * 0.8],
-        [WIDTH * 0.55, HEIGHT * 0.8],
-      ]
-      const o = 4
-      const dx = WIDTH * 0.3
-      const dy = HEIGHT * 0.1
-      for (let i = 0; i < qq.answers.length; i++) {
-        new DecorativeBox(xy[i][0], xy[i][1], dx, dy, "lightgray")
-        new DecorativeBox(xy[i][0] - o, xy[i][1] - o, dx + o * 2, dy + o * 2, "gray")
-        cageOfPlatforms(xy[i][0], xy[i][1], dx, dy, HEIGHT * 0.1, "#ff00ff00")
-        new Text(
-          qq.answers[i],
-          xy[i][0] + dx / 2,
-          xy[i][1] + dy / 2,
-          "30px Fira Sans",
-          "black",
-          "center"
-        )
-      }
-      // Didn't vote box
-      cageOfPlatforms((WIDTH * 5) / 8, 0, WIDTH / 4, HEIGHT / 4 - 10, 15, "gray")
-
-      new Text(
-        "Box of shame\n(didn't vote)",
-        (WIDTH * 3) / 4,
-        HEIGHT / 8,
-        "30px Fira Sans",
-        "black",
-        "center"
-      )
-      // Populate options to clients
-      window.wss.send(
-        JSON.stringify({
-          type: "kahoot-populate-options",
-          question: qq.question,
-          options: qq.answers,
-        })
-      )
-      break
-    }
-    case 16: // Show correct answer
-    case 18:
-    case 20:
-    case 22:
-    case 24:
-    case 26:
-    case 28:
-    case 30: {
-      objs.filter((o) => o instanceof Bloby).forEach((o) => (o.visible = true))
-      // Show check box emoji if correct, cross if incorrect
-      const qq = quizQuestions[(slide.value - 16) / 2]
-      const xy = [
-        [WIDTH * 0.15, HEIGHT * 0.6],
-        [WIDTH * 0.55, HEIGHT * 0.6],
-        [WIDTH * 0.15, HEIGHT * 0.8],
-        [WIDTH * 0.55, HEIGHT * 0.8],
-      ]
-      const dx = WIDTH * 0.3
-      const dy = HEIGHT * 0.1
-      const correctIndex = qq.answers.indexOf(qq.correctAnswer)
-      for (let i = 0; i < qq.answers.length; i++) {
-        let emoji = i === correctIndex ? "✅" : "❌"
-        if (qq.correctAnswer === "<all>") {
-          emoji = "✅"
-        }
-        new Text(emoji, xy[i][0] + dx, xy[i][1], "50px Arial", "black", "center")
-      }
-      // For every blob, check if they got it right and update points
-      for (const obj of objs) {
-        if (obj instanceof Bloby) {
-          const answer = obj.kahootAnswer
-          if (answer === qq.correctAnswer || qq.correctAnswer === "<all>") {
-            obj.kahootPoints += 1
-          }
-        }
-      }
-
-      break
-    }
-    case 31: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Results", WIDTH / 2, 100, "80px Arial", "black", "center")
-      // Display results as a list
-      const sortedBlobs = objs
-        .filter((o) => o instanceof Bloby)
-        .sort((a, b) => b.kahootPoints - a.kahootPoints || a.kahootTotalDelay - b.kahootTotalDelay)
-      const top3Texts = sortedBlobs.map(
-        (b, i) => `${b.name}\n${b.kahootPoints} pts\n${(b.kahootTotalDelay / 1000).toFixed(1)} s`
-      )
-
-      // Platforms
-      new Platform(WIDTH / 2 - 200, HEIGHT * 0.4, 400, 20, "gray")
-      // Podiums
-      const podiumWidth = 180
-      const makePodium = (blX, blY, type, text, blob) => {
-        const c = {
-          gold: "#ffd700",
-          silver: "#c0c0c0",
-          bronze: "#cd7f32",
-        }[type]
-        const h = {
-          gold: 350,
-          silver: 280,
-          bronze: 200,
-        }[type]
-        new Platform(blX, blY - h, podiumWidth, h, c)
-        new Text(text, blX + podiumWidth / 2, blY - h + 20, "30px Arial", "black", "center")
-        blob.setNewPos(blX + podiumWidth / 2, blY - h - 12)
-      }
-      const podiumGap = 20
-      const x = WIDTH / 4
-      const y = HEIGHT * 0.9
-      if (top3Texts.length >= 2)
-        makePodium(x - podiumWidth - podiumGap, y, "silver", top3Texts[1], sortedBlobs[1])
-      if (top3Texts.length >= 1) makePodium(x, y, "gold", top3Texts[0], sortedBlobs[0])
-      if (top3Texts.length >= 3)
-        makePodium(x + podiumWidth + podiumGap, y, "bronze", top3Texts[2], sortedBlobs[2])
-
-      // Small podiums on the right side
-      for (let i = 3; i < Math.min(sortedBlobs.length, 10); i++) {
-        new Platform(WIDTH / 2 + 100 + i * 90, HEIGHT * 0.75, 50, HEIGHT * 0.15, "gray", true)
-        sortedBlobs[i].setNewPos(WIDTH / 2 + 100 + i * 90 + 25, HEIGHT * 0.75 - 12)
-      }
-
-      // Any other blobs not in the top 10, spawn on platform at top
-      for (let i = 10; i < sortedBlobs.length; i++) {
-        sortedBlobs[i].setNewPos(WIDTH / 2 + Math.random(), HEIGHT * 0.3 - 12)
-      }
-
-      break
-    }
-    case 32: {
-      ridNonBlobsAndSetBlobSpawns(objs)
-      new Text("Gracias por participar!", 20, HEIGHT - 40, "15px Fira Sans", "#bbb", "left")
-      new Text("That's all folks", WIDTH / 2, HEIGHT / 2, "80px Arial", "black", "center")
-      new Platform(WIDTH / 4, HEIGHT - 10, WIDTH / 2, 50, "gray")
-      break
-    }
-    default: {
-      ridNonBlobsAndSetBlobSpawns(objs)
+  // KAHOOT SLIDE 1
+  const kahootQuestion = layout?.kahootQuestions?.find((s) => s.slide === slide.value)
+  if (kahootQuestion) {
+    // Shuffle answers
+    kahootQuestion.answers = kahootQuestion.answers.sort(() => Math.random() - 0.5)
+    // Draw boxes/text
+    drawKahootQuestionSlideElements1(kahootQuestion)
+    // Populate options to clients
+    window.wss.send(
+      JSON.stringify({
+        type: "kahoot-populate-options",
+        question: kahootQuestion.question,
+        options: kahootQuestion.answers, // Importantly, we are not sending the correct answer to the client
+      })
+    )
+    // Move blobs to cage in top right corner
+    for (const blob of objs.filter((o) => o instanceof Bloby)) {
+      console.log('yaynew', blob)
+      blob.setNewPos((WIDTH * 3) / 4 + Math.random(), HEIGHT * 0.05)
     }
   }
+
+  // KAHOOT SLIDE 2
+  const kahootQuestion2 = layout?.kahootQuestions?.find((s) => s.slide === slide.value - 1)
+  if (kahootQuestion2) {
+    drawKahootQuestionSlideElements1(kahootQuestion2)
+    drawKahootQuestionSlideElements2(kahootQuestion2)
+  }
+
+  // KAHOOT FINAL STANDINGS
+  if (slide.value === layout?.kahootFinalStandingsSlide) {
+    drawKahootFinalStandingsElements()
+  }
+
   // Draw blobs last while also drawing decorative boxes first
   for (let i = objs.length - 1; i >= 0; i--) {
     if (objs[i] instanceof Bloby) {
@@ -1066,8 +838,10 @@ function init() {
 }
 
 function draw() {
-  // Clear canvas, draw background with grid lines
-  ctx.clearRect(0, 0, WIDTH, HEIGHT)
+  // Clear canvas
+  // ctx.clearRect(0, 0, WIDTH, HEIGHT)
+
+  // // Grid lines for debugging
   // ctx.fillStyle = "#dde";
   // ctx.fillRect(0, 0, WIDTH, HEIGHT);
   // ctx.fillStyle = "red";
