@@ -6,8 +6,7 @@
   "scripts": {
     "ws-server": "nodemon src/server.mjs",
     "http-server": "http-server -p 80 src",
-    "start": "concurrently --kill-others \"npm run ws-server\" \"npm run http-server\"",
-    "configure": "echo \"Please edit ./save/default.json to your liking\""
+    "start": "concurrently --kill-others \"npm run ws-server -- $npm_config_file\" \"npm run http-server -- $npm_config_file\""
   },
   "author": "Kyle W",
   "license": "ISC",

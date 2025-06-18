@@ -13,9 +13,9 @@ function send(ws, data) {
   ws.send(JSON.stringify(data))
 }
 
-/** Return layout (default.json) */
+/** Return layout (uses command line argument 1, then default.json */
 function getCurrentLayout(asJSON = false) {
-  const filePath = "./save/default.json"
+  const filePath = process.env.npm_config_file ?? "./save/default.json"
   if (fs.existsSync(filePath)) {
     const fileContents = fs.readFileSync(filePath, "utf8")
     return asJSON ? JSON.parse(fileContents) : fileContents

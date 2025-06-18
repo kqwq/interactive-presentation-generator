@@ -438,7 +438,10 @@ class Bloby {
 
     // If blob is completely off-screen, reset it to the center
     if (this.x < -this.radius || this.x > WIDTH + this.radius || this.y > HEIGHT + this.radius) {
-      const [sx, sy] = getBlobSpawnXY()
+      const { x: sx, y: sy } = layout?.blobSpawnCoordinates?.find(c => c.slide === slide.value) ?? {
+        x: WIDTH / 2,
+        y: HEIGHT / 2
+      }
       this.vertices.forEach(([x, y], i) => {
         this.vertices[i][0] = sx + Math.random()
         this.vertices[i][1] = sy + Math.random()
@@ -505,6 +508,8 @@ function drawSingleResponseSlide2Elements() {
   new Text("BERT", WIDTH / 4, HEIGHT / 2 - 80, font, "#444", "center")
   new Text("AI Club Responses", (WIDTH * 3) / 4, HEIGHT / 2 - 80, font, "#444", "center")
   new Platform(WIDTH * 0.25, HEIGHT - 10, WIDTH / 2, 50)
+
+  console.log('does this work? ', slide.value, userResponses.maskedWord, aiResponses, userResponses)
 
   const aiClubResponses = getWordFrequencyBreakdown(userResponses.maskedWord)
   const bertResponses = aiResponses[(slide.value + 1) / 2 - 3]
@@ -825,11 +830,11 @@ function init() {
   canvas.width = WIDTH
   canvas.height = HEIGHT
 
-  // Test
-  ctx.fillStyle = "red"
-  // Fill background green
-  ctx.fillStyle = "green"
-  ctx.fillRect(0, 0, WIDTH, HEIGHT)
+  // // Test
+  // ctx.fillStyle = "red"
+  // // Fill background green
+  // ctx.fillStyle = "green"
+  // ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
   // Create one presenter bloby
   blobsById["presenter"] = new Bloby()
@@ -839,7 +844,7 @@ function init() {
 
 function draw() {
   // Clear canvas
-  // ctx.clearRect(0, 0, WIDTH, HEIGHT)
+  ctx.clearRect(0, 0, WIDTH, HEIGHT)
 
   // // Grid lines for debugging
   // ctx.fillStyle = "#dde";
