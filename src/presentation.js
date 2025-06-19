@@ -509,8 +509,6 @@ function drawSingleResponseSlide2Elements() {
   new Text("AI Club Responses", (WIDTH * 3) / 4, HEIGHT / 2 - 80, font, "#444", "center")
   new Platform(WIDTH * 0.25, HEIGHT - 10, WIDTH / 2, 50)
 
-  console.log('does this work? ', slide.value, userResponses.maskedWord, aiResponses, userResponses)
-
   const aiClubResponses = getWordFrequencyBreakdown(userResponses.maskedWord)
   const bertResponses = aiResponses[(slide.value + 1) / 2 - 3]
   const bothRes = [bertResponses, aiClubResponses]
@@ -791,7 +789,6 @@ function loadSlide() {
     )
     // Move blobs to cage in top right corner
     for (const blob of objs.filter((o) => o instanceof Bloby)) {
-      console.log('yaynew', blob)
       blob.setNewPos((WIDTH * 3) / 4 + Math.random(), HEIGHT * 0.05)
     }
   }
@@ -801,6 +798,19 @@ function loadSlide() {
   if (kahootQuestion2) {
     drawKahootQuestionSlideElements1(kahootQuestion2)
     drawKahootQuestionSlideElements2(kahootQuestion2)
+    // Put blobs inside of the option they chose
+    for (const blob of objs.filter((o) => o instanceof Bloby)) {
+      if (!blob.kahootAnswer) {
+        // If blob has no answer, put it in the top right corner
+        blob.setNewPos((WIDTH * 3) / 4 + Math.random(), HEIGHT * 0.05)
+      } else {
+        // If blob has an answer, put it in the option they chose
+        const optionsTxt = objs.find(o => o.text === blob.kahootAnswer)
+        if (!optionsTxt) continue
+        const offsetX = Math.random() * 100 - 50
+        blob.setNewPos(optionsTxt.x + offsetX, optionsTxt.y)
+      }
+    }
   }
 
   // KAHOOT FINAL STANDINGS
@@ -1003,10 +1013,9 @@ wss.onmessage = (msg) => {
     // User chose a Kahoot answer choice
     case "kahoot-choose-option": {
       const optionsTxt = objs.find((o) => o.text === data.option)
+      console.log("Kahoot choose option:", data.option, optionsTxt)
       if (optionsTxt) {
-        const offsetX = Math.random() * 100 - 50
         const b = blobsById[id]
-        b.setNewPos(optionsTxt.x + offsetX, optionsTxt.y)
         b.visible = false // Hide in the options
         b.kahootAnswer = data.option
         b.kahootTotalDelay += data.delay
